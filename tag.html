@@ -1,0 +1,41 @@
+<!-- author Zongkun Liu (liuzk@bu.edu) -->
+<!DOCTYPE html>
+<html>
+<head>
+<h2>Photos in Tag</h2><br />
+</head>
+<body>
+{% if message %}
+{{message}}
+{% endif %}
+
+{% if tags %}
+    <form method="post" action="/tag">
+    <h3>All tags are listed below orderd by popularity (Tag with popularity):</h3>
+    <select name="tags">
+        {% for tag, num in tags %}
+            Tags: <option value={{tag}}>{{tag}} : {{num}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Goto" name="submit"/><br />
+    
+    <h3>Enter tags to search! (Please use '#' to split tags):</h3>
+    <input type="text" name="inputTags" required='true'/>
+    <input type="submit" value="Search" name="submit"/>
+    </form>
+{% endif %}
+{% if Map %}
+<h2>Here's your photos</h2>
+    <ul>
+    {% for key, value in Map.items() %}
+        <li><img src='data:image/png;base64, {{key}}'/></li>
+        <label for="like">User: {{value}}</label>
+    {% endfor %}
+    </ul>
+{% endif %}
+<br />
+Back to Homepage!<br />
+<li><a href='/'>Home</a></li>
+</body>
+</html>
+

@@ -1,0 +1,39 @@
+<!-- author Zongkun Liu (liuzk@bu.edu) -->
+<!DOCTYPE html>
+<html>
+<head>
+<h2>Here are all the photos!</h2><br />
+</head>
+<body>
+{% if message %}
+    {{message}}
+{% endif %}
+{% if photos %}
+    {% for photo, comment_text in photos.items()%}
+        <img src='data:image/png;base64, {{photo[0]}}' />
+        <li>Caption:{{photo[3]}}</li>
+        <li>Likes:{{photo[4]}}</li>
+        <li><a href="/like/{{photo[1]}}">Like this photo</a></li>
+        <li><a href="/leaveComments/{{photo[1]}}">Write Comments</a></li>
+<!--        {% if picture_id %}
+            <input type="text" name="comment" required='true'/><br />
+        {% endif %}
+-->
+        <li><label for="comments">Comments:</label>
+        <select name="comments">
+            {% for comment in comment_text %}
+                {% if comment %}
+                    <option value={{comment[0]}}>{{comment[0]}}</option>
+                {% else %}
+                    <option value={{comment}}>{{comment}}</option>
+                {% endif %}
+            {% endfor %}
+        </select></li>
+    {% endfor %}
+{% endif %}
+<br />
+Back to Homepage!<br />
+<li><a href='/'>Home</a></li>
+</body>
+</html>
+

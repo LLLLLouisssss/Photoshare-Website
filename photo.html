@@ -1,0 +1,32 @@
+<!-- author Zongkun Liu (liuzk@bu.edu) -->
+<!DOCTYPE html>
+<html>
+<head>
+<h2>Photo Gallary</h2>
+</head>
+<body>
+{% if Map %}
+<h3>Here's your photos</h3>
+<form method="POST" action="/yourtag">
+    <ul>
+    {% for photo, tags in Map.items() %}
+        <img src='data:image/png;base64, {{photo[0]}}'/>
+    	<li>Tags:<select name="tags">
+            {% for tag in tags %}
+              	Tags: <option value={{tag}}>{{tag}}</option>
+            {% endfor %}
+        </select>
+    	<input type="submit" value="Goto" name="submit"/></li>
+    	<li><a href="/deletePhoto/{{photo[1]}}">Delelte this photo</a></li>
+    {% endfor %}
+    </ul>
+</form>
+{% endif %}
+
+
+Back to Homepage!<br />
+<li><a href='/'>Home</a></li>
+</script>
+</body>
+</html>
+

@@ -1,0 +1,89 @@
+<!-- author Zongkun Liu (liuzk@bu.edu) -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Friends!</title>
+    <style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+	<div class="title">
+        <h2>Manage your Friendship!</h2>
+            <h3>{{message1}}</h3>
+            {%if friends%}
+            <select name="username">
+            	{% for friend in friends %}
+                    <option value={{friend}}>{{friend}}</option>
+                {% endfor %}
+            </select>
+            {%endif%}
+            <br /><br />
+            
+            
+            <form method="post" action="/friends">
+                {% if search %}
+                <h3>Add a new friend here!</h3>
+            	<label for="email">Please enter an email here:</label>
+                <input type="text" name="email" required='true' autocomplete="on"/>
+                <input type="submit" name="submit" value="Search" /><br /><br />
+                {% endif %}
+                {%if user%}
+                	Found user:<br />
+                	<select name="username">
+                    <option value={{user}}>{{user}}</option>
+                	</select>
+                	<select name="Email">
+                    <option value={{Email}}>{{Email}}</option>
+                	</select><br /><br />
+                	Click "View" to go to the user's profile!<br />
+                	<input type="submit" name="submit" value="View" /><br /><br />
+                	<!--
+                	<table>
+  					<tr>
+    					<th>First Name</th>
+    					<th>Last Name</th>
+    					<th>Email</th>
+    					<th>Birthday</th>
+    					<th>Hometown</th>
+    					<th>Gender</th>
+  					</tr>
+  					<tr>
+    					<td>{{ firstname }}</td>
+    					<td>{{ lastname }}</td>
+    					<td>{{ email }}</td>
+    					<td>{{ birthday }}</td>
+    					<td>{{ hometown }}</td>
+    					<td>{{ gender }}</td>
+  					</tr>
+  
+					</table>
+					-->
+                	Click "Add" to add the user as your friend!<br />
+                	<input type="submit" name="submit" value="Add" /><br />
+                {%endif%}
+                {%if message%}
+                	{{message}}
+                {%endif%}
+
+            </form>
+    </div>
+<br />
+Back to Homepage<br />
+<a href='/'>Home</a>
+</body>
+</html>
