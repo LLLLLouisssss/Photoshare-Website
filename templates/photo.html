@@ -4,15 +4,34 @@
 Photos
 </head>
 <body>
-{% if photos %}
+{% if Map %}
 <h2>Here's your photos</h2>
+<form method="POST" action="{{ url_for('showPictures') }}">
     <ul>
-    {% for photo in photos %}
-        <li><img src='data:image/png;base64, {{photo[0]}}'/></li>
+    {% for key, value in Map.items() %}
+        <li><img src='data:image/png;base64, {{key}}'/></li>
+        <input type="checkbox" name="key[]" value=""{% if key.published %}checked{% endif %}>Like
+    	<select name="tags">
+            {% for tag in value %}
+              	Tags: <option value={{tag}}>{{tag}}</option>
+            {% endfor %}
+        </select>
+        
+    		<input type="submit" value="Goto" name="submit"/><br />
+    	
     {% endfor %}
+    <input type="submit" value="Like" name="submit" onClick="likePicture()"/>
+    <input type="text" value="" id="like"/>
     </ul>
+</form>
 {% endif %}
 <li><a href='/'>Home</a></li>
+
+<script type="text/javascript">
+	function likePicture(){
+		document.getElementById("like").value = "You liked these pictures!";
+	}
+</script>
 </body>
 </html>
 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+Photos in Tag<br />
+</head>
+<body>
+{% if tags %}
+    <form method="post" action="/tag">
+    <label for="tags">All tags are listed below:</label><br />
+    <select name="tags">
+        {% for tag in tags %}
+            Tags: <option value={{tag}}>{{tag}}</option>
+        {% endfor %}
+    </select>
+    
+        <input type="submit" value="Goto" name="submit"/>
+    </form>
+{% endif %}
+{% if Map %}
+<h2>Here's your photos</h2>
+    <form method="post" action="/tag">
+    <ul>
+    {% for key, value in Map.items() %}
+        <li><img src='data:image/png;base64, {{key}}'/></li>
+        <label for="like">User: {{value}}</label>
+    	<input type="submit" value="Like" name="like"/>
+    {% endfor %}
+    </ul>
+    </form>
+{% endif %}
+<li><a href='/'>Home</a></li>
+</body>
+</html>
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Friends!</title>
+    <style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+	<div class="title">
+            <h5>{{message1}}</h5>
+            {%if friends%}
+            <select name="username">
+            	{% for friend in friends %}
+                    <option value={{friend}}>{{friend}}</option>
+                {% endfor %}
+            </select>
+            {%endif%}
+            <h1>Add a new friend here!</h1>
+            <form method="post" action="/friends">
+            	<label for="email">Please enter an email here:</label>
+                <input type="text" name="email" required='true' autocomplete="on"/><br />
+                <input type="submit" name="submit" value="Search" /><br />
+                {%if user%}
+                	<h2>Found user:</h2>
+                	<select name="username">
+                    <option value={{user}}>{{user}}</option>
+                	</select>
+                	<select name="Email">
+                    <option value={{Email}}>{{Email}}</option>
+                	</select><br />
+                	<h3>Click "View" to go to the user's profile!</h3><br />
+                	<input type="submit" name="submit" value="View" /><br />
+                	<!--
+                	<table>
+  					<tr>
+    					<th>First Name</th>
+    					<th>Last Name</th>
+    					<th>Email</th>
+    					<th>Birthday</th>
+    					<th>Hometown</th>
+    					<th>Gender</th>
+  					</tr>
+  					<tr>
+    					<td>{{ firstname }}</td>
+    					<td>{{ lastname }}</td>
+    					<td>{{ email }}</td>
+    					<td>{{ birthday }}</td>
+    					<td>{{ hometown }}</td>
+    					<td>{{ gender }}</td>
+  					</tr>
+  
+					</table>
+					-->
+                	<h4>Click "Add" to add the user as your friend!</h4><br />
+                	<input type="submit" name="submit" value="Add" /><br />
+                {%endif%}
+                {%if message%}
+                	{{message}}
+                {%endif%}
+
+            </form>
+    </div>
+<a href='/'>Home</a>
+</body>
+</html>

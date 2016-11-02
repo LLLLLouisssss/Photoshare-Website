@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+Here are all the photos!<br />
+</head>
+<body>
+{% if message %}
+    {{message}}
+{% endif %}
+{% if photos %}
+    {% for photo, comment_text in photos.items()%}
+        <li><img src='data:image/png;base64, {{photo[0]}}' /></li>
+        <li>Caption:{{photo[3]}}</li>
+        <li>Likes:{{photo[4]}}</li>
+        <li><a href="/like/{{photo[1]}}">Like this photo</a></li>
+        <li><a href="/leaveComments/{{photo[1]}}">Write Comments</a></li>
+        <li><label for="comments">Comments:</label>
+        <select name="comments">
+            {% for comment in comment_text %}
+                {% if comment %}
+                    <option value={{comment[0]}}>{{comment[0]}}</option>
+                {% else %}
+                    <option value={{comment}}>{{comment}}</option>
+                {% endif %}
+            {% endfor %}
+        </select></li>
+    {% endfor %}
+{% endif %}
+
+<li><a href='/'>Home</a></li>
+</body>
+</html>
+
