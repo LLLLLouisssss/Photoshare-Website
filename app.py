@@ -216,28 +216,185 @@ def setup_album():
 			cursor = conn.cursor()
 			cursor.execute("SELECT album_id FROM Albums WHERE name = '{0}'".format(album_name))
 			album_id = cursor.fetchone()[0] 
-			print album_id
+			#print album_id
 			cursor.execute("SELECT imgdata, picture_id, caption FROM Pictures WHERE album_id = '{0}'".format(album_id))
 			photo = cursor.fetchall()
-			#print photo
-			return render_template('photo.html', photos=photo)
-'''
-#get link name
-def getLinkName():
-	if request.method == 'POST':
-		album_name = request.form.get("albums")
-		print album_name
-		return album_name
-'''
-
-'''
-@app.route('/photo', methods=['GET','POST'])
+			tags = []
+			Map = {}
+			for item in photo:
+				images, picture_ids, captions = item
+				print picture_ids
+				cursor.execute("SELECT tag_text FROM associatedWith WHERE picture_id = '{0}'".format(picture_ids))
+				tag = cursor.fetchone()[0]
+				print tag
+				tag = tag.split('#')
+				tags.append(tag)
+				print tag
+				Map[images] = tag 
+				'''
+				for tag in tags:
+					tag = tag[0]
+					print tag
+					Tags.append(tag)
+					'''
+			#print Tags
+			length = len(photo)
+			#Like = likePictures()
+			return render_template('photo.html', Map=Map) 
+#Display all photos from database
+@app.route('/allphotos', methods=['GET', 'POST'])
 @flask_login.login_required
-def show():
+def showPhotos():
 	if request.method == 'GET':
-		album_name = getLinkName()
-		print album_name
+		cursor = conn.cursor()
+		cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+		photos = cursor.fetchall()
+		Map = {}
+		for photo in photos:
+			cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+			comment_text = cursor.fetchall()
+			print comment_text
+			if (len(comment_text) != 0):
+				Map[photo] = comment_text
+			else:
+				Map[photo] = ""
+		return render_template('allphotos.html', photos=Map)
 
+#like a photo
+@app.route('/like/<picture_id>', methods=['GET', 'POST'])
+@flask_login.login_required	
+def likePhotos(picture_id):
+	cursor = conn.cursor()
+	cursor.execute("UPDATE Pictures SET num_likes = num_likes + 1 WHERE picture_id ='{0}'".format(picture_id))
+	conn.commit()
+	cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+	photos = cursor.fetchall()
+	Map = {}
+	for photo in photos:
+		cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+		comment_text = cursor.fetchall()
+		print comment_text
+		if (len(comment_text) != 0):
+			Map[photo] = comment_text
+		else:
+			Map[photo] = ""
+	return render_template('allphotos.html', message='You have liked a photo!', photos=Map)
+
+#leave a comment to a photo
+@app.route('/leaveComments/<picture_id>', methods=['GET', 'POST'])
+@flask_login.login_required	
+def leaveComments(picture_id):
+	if request.method == 'POST':
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		comment_text = request.form.get('description')
+		cursor = conn.cursor()
+		if not cursor.execute("SELECT * FROM Pictures WHERE picture_id ='{0}' and user_id= '{1}'".format(picture_id,uid)):
+			cursor.execute("INSERT INTO Comments (comment_text, picture_id, user_id) VALUES ('{0}', '{1}','{2}')".format(comment_text,picture_id,uid))
+			conn.commit()
+			cursor.execute("SELECT comment_id FROM Comments WHERE comment_text = '{0}' and picture_id ='{1}' and user_id= '{2}'".format(comment_text,picture_id,uid))
+			comment_id = cursor.fetchone()[0]
+			print comment_id
+			cursor.execute("INSERT INTO leaveComments (comment_id, picture_id) VALUES ('{0}', '{1}')".format(comment_id,picture_id))
+			conn.commit()
+			cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+			photos = cursor.fetchall()
+			Map = {}
+			for photo in photos:
+				cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+				comment_text = cursor.fetchall()
+				print comment_text
+				if (len(comment_text) != 0):
+					Map[photo] = comment_text
+				else:
+					Map[photo] = ""
+			return render_template('allphotos.html', message='You have left your comment to the photo!', photos=Map)
+		else:
+			cursor = conn.cursor()
+			cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+			photos = cursor.fetchall()
+			Map = {}
+			for photo in photos:
+				cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+				comment_text = cursor.fetchall()
+				print comment_text
+				if (len(comment_text) != 0):
+					Map[photo] = comment_text
+				else:
+					Map[photo] = ""
+			return render_template('allphotos.html', message='You can not leave a comment to your own photo!', photos=photos)
+	else:
+		return render_template('comments.html', picture_id=picture_id)
+'''
+#show all comments of the photo 
+@app.route('/showComments/<picture_id>', methods=['GET', 'POST'])
+@flask_login.login_required	
+def showComments(picture_id):
+	cursor = conn.cursor()
+	cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+	comment_text = cursor.fetchall()
+	cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+	photos = cursor.fetchall()
+	return render_template('allphotos.html', message='You have liked a photo!', photos=photos)
+'''
+
+
+@app.route('/tag', methods=['GET', 'POST'])
+@flask_login.login_required
+def showPictures():
+	if request.method == 'POST':
+		if request.form['submit'] == 'Goto':
+			tag_text = request.form.get("tags")
+			print tag_text
+			cursor = conn.cursor()
+			cursor.execute("SELECT picture_id, tag_text FROM associatedWith")
+			tmps = cursor.fetchall()
+			print tmps
+			picture_ids = []
+			for tmp in tmps:
+				picture_id, tags = tmp
+				print picture_id, tags
+				if (tag_text in tags):
+					picture_ids.append(picture_id)
+			print picture_ids
+			Map = {}
+			for picture_id in picture_ids:
+				cursor.execute("SELECT imgdata, user_id FROM Pictures WHERE picture_id = '{0}'".format(picture_id))
+				imgdata, user_id = cursor.fetchone()
+				cursor.execute("SELECT firstname, lastname FROM Users WHERE user_id = '{0}'".format(user_id))
+				user = cursor.fetchone()
+				print user
+				firstname, lastname = user
+				name = (str(firstname) + ' ' + str(lastname))
+				print name
+				Map[imgdata] = name
+			return render_template('tag.html', Map=Map) 
+			
+			
+					#print item
+	
+			return render_template('tag.html')
+	else:
+		cursor = conn.cursor()
+		cursor.execute("SELECT tag_text FROM associatedWith")
+		tags = cursor.fetchall()
+		Tags = []
+		for item in tags:
+			item = item[0]
+			if (item.split('#')):
+				item = item.split('#')
+				#print item
+				for i in range(len(item)):
+					tmp = item[i]
+					if (tmp not in Tags):
+						Tags.append(tmp)
+			else:
+				if (item not in Tags):
+					Tags.append(item)
+		#print Tags			
+		return render_template('tag.html', tags=Tags) 
+		#print tag_text
+
+'''
 #display the photos in that album
 def display():
 	if request.method == 'POST':
@@ -278,6 +435,7 @@ def upload_file():
 		caption = request.form.get('caption')
 		album_name = request.form.get('albums')
 		tag = request.form.get('tag')
+		
 		photo_data = base64.standard_b64encode(imgfile.read())
 		cursor = conn.cursor()
 		cursor.execute("SELECT album_id FROM Albums WHERE name = '{0}'".format(album_name))
@@ -317,6 +475,100 @@ def ifAlbumExists(album_name):
 		return False
 #end photo uploading code 
 
+@app.route('/friends', methods=['GET', 'POST'])
+@flask_login.login_required
+#list your friends
+
+#add a new friend
+def addFriend():
+	uid = getUserIdFromEmail(flask_login.current_user.id)
+	#print uid
+	cursor = conn.cursor()
+	if request.method == 'POST':
+		test = 1
+		if request.form['submit'] == 'Search':
+			Email = request.form.get('email')
+			if cursor.execute("SELECT firstname, lastname FROM Users WHERE email = '{0}'".format(Email)):
+				user = cursor.fetchone()
+				firstname, lastname = user
+				name = (str(firstname) + ' ' + str(lastname))
+				test = 1
+				return render_template('friends.html', user=name, Email=Email)
+			else:
+				return render_template('friends.html', message="This email has not been registerd!")
+		elif request.form['submit'] == 'View':
+			Email = request.form.get('Email')
+			#print email
+			if test:
+				cursor.execute("SELECT email, firstname, lastname, birthday, hometown, gender FROM Users WHERE email = '{0}'".format(Email))
+				Profile = cursor.fetchone()
+				Email, Firstname, Lastname, Birthday, Hometown, Gender = Profile
+				return render_template('profile.html', firstname=Firstname, lastname=Lastname, email=Email, birthday=Birthday, hometown=Hometown, gender=Gender)
+			else:
+				return render_template('friends.html', message="This email has not been registerd!")
+		elif request.form['submit'] == 'Add':
+			Email = request.form.get('Email')
+			#print email
+			if test:
+				cursor.execute("SELECT user_id FROM Users WHERE email = '{0}'".format(Email))
+				user1_id = uid
+				user2_id = cursor.fetchone()[0]
+				print user2_id
+				if cursor.execute("INSERT INTO friendTo (user1_id, user2_id) VALUES ('{0}', '{1}')".format(user1_id, user2_id)):
+					conn.commit()
+					return render_template('friends.html', message="Addedd successfully!")
+				else:
+					return render_template('friends.html', message="You have already added this user as your friend!")
+			else:
+				return render_template('friends.html', message="This email has not been registerd!")
+	else:
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		user_id = []
+		cursor = conn.cursor()
+		cursor.execute("SELECT user2_id FROM friendTo WHERE user1_id = '{0}'".format(uid))
+		user2_ids = cursor.fetchall()
+		if len(user2_ids) != 0:
+			for user2_id in user2_ids:
+				user2_id = user2_id[0]
+				print user2_id
+				user_id.append(user2_id)
+
+		cursor.execute("SELECT user1_id FROM friendTo WHERE user2_id = '{0}'".format(uid))
+		user1_ids = cursor.fetchall()
+		if len(user1_ids) != 0:
+			for user1_id in user1_ids:
+				user1_id = user1_id[0]
+				print user1_id
+				user_id.append(user1_id)
+		print user_id
+		names = []
+		if len(user_id) != 0:
+			for fid in user_id:
+			 	cursor.execute("SELECT firstname, lastname FROM Users WHERE user_id = '{0}'".format(fid))
+			 	user = cursor.fetchone()
+			 	firstname, lastname = user
+			 	name = (str(firstname) + ' ' + str(lastname))
+			 	names.append(name)
+			return render_template('friends.html', friends=names, message1="Here are your friends!")
+		else:
+			return render_template('friends.html', message1="Seems like you haven't added any friends so far!")
+'''
+def listFriends():
+	if request.method == 'GET':
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		cursor = conn.cursor()
+		cursor.execute("SELECT user2_id FROM friendTo WHERE user1_id = '{0}'".format(uid))
+		user2_id = fetchall()
+		print user2_id
+		cursor.execute("SELECT user1_id FROM friendTo WHERE user2_id = '{0}'".format(uid))
+		user1_id = fetchall()
+		print user1_id
+		if len(user1_id) != 0 or len(user2_id) != 0:
+			 for fid in user_id:
+			 	cursor.execute("SELECT firstname, lastname FROM Users WHERE user_id = '{0}'".format(fid))
+
+		return render_template('friends.html')
+'''
 
 #default page  
 @app.route("/", methods=['GET'])
