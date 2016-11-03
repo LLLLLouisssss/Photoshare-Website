@@ -249,18 +249,18 @@ def deletePhoto(picture_id):
 		cursor = conn.cursor()
 		cursor.execute("DELETE FROM Pictures WHERE Picture_id ='{0}'".format(picture_id))
 		conn.commit()
-		'''
-		cursor.execute("DELETE FROM storeIn WHERE Picture_id ='{0}'".format(picture_id))
-		conn.commit()
-		cursor.execute("DELETE FROM Comments WHERE Picture_id ='{0}'".format(picture_id))
-		conn.commit()
-		cursor.execute("DELETE FROM leaveComments WHERE Picture_id ='{0}'".format(picture_id))
-		conn.commit()
-		cursor.execute("DELETE FROM associatedWith WHERE Picture_id ='{0}'".format(picture_id))
-		conn.commit()
-		'''
-		return render_template('album.html', message="You have deleted the photo!")
-
+		cursor.execute("SELECT imgdata, picture_id, user_id, caption, num_likes FROM Pictures")
+		photos = cursor.fetchall()
+		Map = {}
+		for photo in photos:
+			cursor.execute("SELECT comment_text FROM Comments WHERE picture_id ='{0}'".format(photo[1]))
+			comment_text = cursor.fetchall()
+			print comment_text
+			if (len(comment_text) != 0):
+				Map[photo] = comment_text
+			else:
+				Map[photo] = ""
+		return render_template('allphotos.html', photos=Map, message="You have deleted the photo!")
 
 
 #Display all photos from database
@@ -529,11 +529,30 @@ def showPictures():
 def protected():
 	cursor = conn.cursor()
 	uid = getUserIdFromEmail(flask_login.current_user.id)
-	cursor.execute("SELECT email, firstname, lastname, birthday, hometown, gender FROM Users WHERE user_id = '{0}'".format(uid))
+	cursor.execute("SELECT email, firstname, lastname, birthday, hometown, gender, contribution FROM Users WHERE user_id = '{0}'".format(uid))
 	Profile = cursor.fetchall()
-	Email, Firstname, Lastname, Birthday, Hometown, Gender = Profile[0]
-	return render_template('profile.html', firstname=Firstname, lastname=Lastname, email=Email, birthday=Birthday, hometown=Hometown, gender=Gender)
+	Email, Firstname, Lastname, Birthday, Hometown, Gender, Contribution = Profile[0]
+	return render_template('profile.html', firstname=Firstname, lastname=Lastname, email=Email, birthday=Birthday, hometown=Hometown, gender=Gender, contribution=Contribution)
 
+#Top active users
+@app.route('/topUsers', methods=['GET'])
+def topUsers():
+	cursor = conn.cursor()
+	cursor.execute("SELECT user_id FROM Users ORDER BY contribution DESC")
+	user_ids = cursor.fetchall()
+	print user_ids
+	if (len(user_ids) > 5):
+		user_ids = user_ids[:5]
+	print user_ids
+	profiles = []
+	for uid in user_ids: 
+		uid = uid[0]
+		cursor.execute("SELECT firstname, lastname, email, birthday, hometown, gender, contribution FROM Users WHERE user_id = '{0}'".format(uid))
+		profile = cursor.fetchone()
+		print profile
+		Firstname, Lastname, Email, Birthday, Hometown, Gender, Contribution = profile
+		profiles.append(profile)
+	return render_template('profile.html', profiles=profiles)
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
@@ -573,12 +592,48 @@ def upload_file():
 	else:
 		uid = getUserIdFromEmail(flask_login.current_user.id)
 		cursor = conn.cursor()
+		cursor.execute("SELECT picture_id FROM Pictures WHERE user_id ='{0}'".format(uid))
+		picture_ids = cursor.fetchall()
+		print picture_ids
+		Tags = []
+		tags = []
+		num = []
+		Map = []
+		for picture_id in picture_ids:
+			cursor.execute("SELECT tag_text FROM associatedWith WHERE picture_id ='{0}'".format(picture_id[0]))
+			tag_text = cursor.fetchone()
+			tags.append(tag_text)
+			for item in tag_text:
+				item = item
+			if (item.split('#')):
+				item = item.split('#')
+				#print item
+				for i in range(len(item)):
+					tmp = item[i]
+					if (tmp not in Tags):
+						Tags.append(tmp)
+			else:
+				if (item not in Tags):
+					Tags.append(item)
+		print Tags
+		print tags
+		for tag in Tags:
+			i = 0
+			for text in tags:
+				if tag in text[0]:
+					i = i + 1
+			num.append(i)
+			Map.append([tag, i])
+		Map.sort(key=lambda tup: tup[1], reverse=True)
+		print Map
+
+
 		cursor.execute("SELECT name FROM Albums WHERE user_id = '{0}'".format(uid))
 		album_name = cursor.fetchall()
 		album_names = []
 		for item in album_name:
 			album_names.append(item[0])
-		return render_template('upload.html', albums=album_names, message="If you want to create a new album, please click Create!")
+		return render_template('upload.html', albums=album_names, message="If you want to create a new album, please click Create!", tags=Map)
 
 #check if the album exists
 def ifAlbumExists(album_name):
@@ -611,17 +666,17 @@ def addFriend():
 				test = 1
 				return render_template('friends.html', user=name, Email=Email)
 			else:
-				return render_template('friends.html', message="This email has not been registerd!")
+				return render_template('friends.html', message="This email has not been registerd!", search=1)
 		elif request.form['submit'] == 'View':
 			Email = request.form.get('Email')
 			#print email
 			if test:
-				cursor.execute("SELECT email, firstname, lastname, birthday, hometown, gender FROM Users WHERE email = '{0}'".format(Email))
+				cursor.execute("SELECT email, firstname, lastname, birthday, hometown, gender, contribution FROM Users WHERE email = '{0}'".format(Email))
 				Profile = cursor.fetchone()
-				Email, Firstname, Lastname, Birthday, Hometown, Gender = Profile
-				return render_template('profile.html', firstname=Firstname, lastname=Lastname, email=Email, birthday=Birthday, hometown=Hometown, gender=Gender)
+				Email, Firstname, Lastname, Birthday, Hometown, Gender, Contribution = Profile
+				return render_template('profile.html', firstname=Firstname, lastname=Lastname, email=Email, birthday=Birthday, hometown=Hometown, gender=Gender, contribution=Contribution)
 			else:
-				return render_template('friends.html', message="This email has not been registerd!")
+				return render_template('friends.html', message="This email has not been registerd!", search=1)
 		elif request.form['submit'] == 'Add':
 			Email = request.form.get('Email')
 			if test:
@@ -651,9 +706,9 @@ def addFriend():
 					conn.commit()
 					return render_template('friends.html', message="Addedd successfully!")
 				else:
-					return render_template('friends.html', message="You have already added this user as your friend!")
+					return render_template('friends.html', message="You have already added this user as your friend!", search=1)
 			else:
-				return render_template('friends.html', message="This email has not been registerd!")
+				return render_template('friends.html', message="This email has not been registerd!", search=1)
 	else:
 		uid = getUserIdFromEmail(flask_login.current_user.id)
 		user_id = []
@@ -684,7 +739,7 @@ def addFriend():
 			 	names.append(name)
 			return render_template('friends.html', friends=names, message1="Here are your friends!", search=1)
 		else:
-			return render_template('friends.html', message1="Seems like you haven't added any friends so far!")
+			return render_template('friends.html', message1="Seems like you haven't added any friends so far!", search=1)
 
 
 #default page  

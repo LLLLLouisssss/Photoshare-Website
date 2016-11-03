@@ -25,6 +25,10 @@ tr:nth-child(even) {
 	<div class="title">
         <h2>Manage your Friendship!</h2>
             <h3>{{message1}}</h3>
+            {%if message%}
+                    {{message}}
+            {%endif%}
+
             {%if friends%}
             <select name="username">
             	{% for friend in friends %}
@@ -76,10 +80,7 @@ tr:nth-child(even) {
                 	Click "Add" to add the user as your friend!<br />
                 	<input type="submit" name="submit" value="Add" /><br />
                 {%endif%}
-                {%if message%}
-                	{{message}}
-                {%endif%}
-
+                
             </form>
     </div>
 <br />

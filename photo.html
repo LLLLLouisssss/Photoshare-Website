@@ -12,8 +12,9 @@
     {% for photo, tags in Map.items() %}
         <img src='data:image/png;base64, {{photo[0]}}'/>
     	<li>Tags:<select name="tags">
+    		<option disabled selected value> -- select an tag -- </option>
             {% for tag in tags %}
-              	Tags: <option value={{tag}}>{{tag}}</option>
+              	<option value={{tag}}>{{tag}}</option>
             {% endfor %}
         </select>
     	<input type="submit" value="Goto" name="submit"/></li>

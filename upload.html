@@ -16,6 +16,15 @@
                 <input type="text" name="caption" required='true' /><br />
                 <label for="tag">Please add tag to your photo and use "#" to split:</label>
                 <input type="text" name="tag" required='false' /><br />
+                {% if tags %}
+                    <label for="tags">Here are top 5 common tags you use:</label>
+                    <select name="tags">
+                    {% for tag, num in tags %}
+                        Tags: <option value={{tag}}>{{tag}} : {{num}}</option>
+                    {% endfor %}
+                    </select>
+                {% endif %}
+                <br />
                 <label for="albums">Please select an album:</label>
                 <select name="albums">
                     {% for album in albums %}

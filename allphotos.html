@@ -10,7 +10,7 @@
 {% endif %}
 {% if photos %}
     {% for photo, comment_text in photos.items()%}
-        <img src='data:image/png;base64, {{photo[0]}}' />
+        <li><img src='data:image/png;base64, {{photo[0]}}' /></li>
         <li>Caption:{{photo[3]}}</li>
         <li>Likes:{{photo[4]}}</li>
         <li><a href="/like/{{photo[1]}}">Like this photo</a></li>

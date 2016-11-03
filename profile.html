@@ -30,6 +30,7 @@ tr:nth-child(even) {
     <th>Birthday</th>
     <th>Hometown</th>
     <th>Gender</th>
+    <th>Contribution</th>
   </tr>
   <tr>
     <td>{{ firstname }}</td>
@@ -38,9 +39,24 @@ tr:nth-child(even) {
     <td>{{ birthday }}</td>
     <td>{{ hometown }}</td>
     <td>{{ gender }}</td>
+    <td>{{ contribution }}</td>
   </tr>
-  
+  {% if profiles %}
+  {% for profile in profiles %}
+  <tr>
+    <td>{{ profile[0] }}</td>
+    <td>{{ profile[1] }}</td>
+    <td>{{ profile[2] }}</td>
+    <td>{{ profile[3] }}</td>
+    <td>{{ profile[4] }}</td>
+    <td>{{ profile[5] }}</td>
+    <td>{{ profile[6] }}</td>
+  </tr>
+  {% endfor %}
+{% endif %}
+
 </table>
+
 <br />
 Back to Homepage!<br />
 <li><a href='/'>Home</a></li>
